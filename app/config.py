@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -79,7 +79,7 @@ class AppConfig:
     contrast: float = 1.0    # 0..2
     saturation: float = 1.0  # 0..3
 
-    crop: Crop = Crop()
+    crop: Crop = field(default_factory=Crop)
 
     # Overlay
     overlay_enabled: bool = False
