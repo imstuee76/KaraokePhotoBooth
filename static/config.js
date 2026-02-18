@@ -21,6 +21,7 @@ function payloadFromForm() {
     pre_clip_delay_seconds: getVal("pre_clip_delay_seconds"),
     clip_duration_seconds: getVal("clip_duration_seconds"),
     idle_text: getVal("idle_text"),
+    idle_background_filename: getVal("idle_background_filename"),
 
     preferred_video_device_label: getVal("preferred_video_device_label"),
     preferred_audio_device_label: getVal("preferred_audio_device_label"),
@@ -91,6 +92,27 @@ async function uploadOverlay() {
   msg("Overlay uploaded.");
 }
 
+async function uploadBackground() {
+  const f = el("bg_upload").files[0];
+  if (!f) return;
+  msg("Uploading background...");
+  const fd = new FormData();
+  fd.append("file", f);
+  const r = await fetch("/api/background/upload", { method: "POST", body: fd });
+  if (!r.ok) {
+    msg("Background upload failed", true);
+    return;
+  }
+  const data = await r.json();
+  const sel = el("idle_background_filename");
+  const cur = data.filename;
+  sel.innerHTML = '<option value="">(none - black)</option>' + data.backgrounds.map(b => {
+    const s = b === cur ? " selected" : "";
+    return `<option value="${b}"${s}>${b}</option>`;
+  }).join("");
+  msg("Background uploaded.");
+}
+
 function applyPreset() {
   const idx = el("preset").value;
   if (idx === "") return;
@@ -107,6 +129,7 @@ function applyPreset() {
 
 el("saveBtn").addEventListener("click", save);
 el("overlay_upload").addEventListener("change", uploadOverlay);
+el("bg_upload").addEventListener("change", uploadBackground);
 el("preset").addEventListener("change", applyPreset);
 msg("");
 

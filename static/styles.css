@@ -163,7 +163,14 @@ button:active{transform:scale(.98)}
   z-index:4;
   pointer-events:none;
 }
+.idle-bg{
+  position:absolute;
+  inset:0;
+  background:#000 center center / cover no-repeat;
+  opacity:.9;
+}
 .idle .floaty{
+  position:relative;
   font-size: clamp(44px, 8vw, 92px);
   font-weight:900;
   opacity:.92;

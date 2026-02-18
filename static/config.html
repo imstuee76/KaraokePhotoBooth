@@ -16,6 +16,7 @@
             <div class="small">Applies to preview and future recordings.</div>
           </div>
           <div class="row" style="flex:0">
+            <button class="btn-secondary" onclick="location.href='/admin'">Admin</button>
             <button class="btn-secondary" onclick="location.href='/'">Back</button>
           </div>
         </div>
@@ -52,6 +53,18 @@
 
             <label>Idle text</label>
             <input id="idle_text" value="{{ cfg.idle_text }}" />
+
+            <label>Idle background image</label>
+            <select id="idle_background_filename">
+              <option value="">(none - black)</option>
+              {% for b in backgrounds %}
+                <option value="{{ b }}" {% if b == cfg.idle_background_filename %}selected{% endif %}>{{ b }}</option>
+              {% endfor %}
+            </select>
+
+            <label>Upload idle background</label>
+            <input id="bg_upload" type="file" accept="image/png,image/jpeg,image/webp" />
+            <div class="small">Stored in <span class="mono">data/backgrounds/</span></div>
           </div>
 
           <div class="panel">

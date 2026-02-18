@@ -10,6 +10,7 @@ APP_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = APP_DIR / "data"
 CONFIG_PATH = DATA_DIR / "config.json"
 OVERLAYS_DIR = DATA_DIR / "overlays"
+BACKGROUNDS_DIR = DATA_DIR / "backgrounds"
 SESSIONS_DIR = DATA_DIR / "sessions"
 
 
@@ -58,6 +59,7 @@ class AppConfig:
 
     # Idle
     idle_text: str = "Not unlocked"
+    idle_background_filename: str = ""
 
     # Browser device selection (substring match on device label; requires permission first).
     preferred_video_device_label: str = ""
@@ -117,6 +119,7 @@ class AppConfig:
 def ensure_dirs() -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     OVERLAYS_DIR.mkdir(parents=True, exist_ok=True)
+    BACKGROUNDS_DIR.mkdir(parents=True, exist_ok=True)
     SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
 
 
@@ -125,6 +128,18 @@ def overlays_list() -> List[str]:
     files = []
     for p in OVERLAYS_DIR.glob("*.png"):
         if p.is_file():
+            files.append(p.name)
+    files.sort()
+    return files
+
+
+def backgrounds_list() -> List[str]:
+    ensure_dirs()
+    files: List[str] = []
+    for p in BACKGROUNDS_DIR.iterdir():
+        if not p.is_file():
+            continue
+        if p.suffix.lower() in [".png", ".jpg", ".jpeg", ".webp"]:
             files.append(p.name)
     files.sort()
     return files

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Admin - Karaoke Photo Booth</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <div class="wrap">
+        <div class="row" style="align-items:center;justify-content:space-between">
+          <div>
+            <div class="h1">Admin Session Control</div>
+            <div class="small">Start/stop session for the booth screen.</div>
+          </div>
+          <div class="row" style="flex:0">
+            <button class="btn-secondary" onclick="location.href='/config'">Config</button>
+            <button class="btn-secondary" onclick="location.href='/'">Booth</button>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:14px">
+          <div class="row" style="align-items:center">
+            <div class="small mono" id="status">Checking session...</div>
+            <div class="small mono" id="code"></div>
+            <div class="small mono" id="timer"></div>
+          </div>
+          <div class="row" style="margin-top:12px;max-width:520px">
+            <button class="btn-primary" id="startBtn">Start Session</button>
+            <button class="btn-danger" id="stopBtn">Stop Session</button>
+          </div>
+          <div class="small" id="msg" style="margin-top:10px"></div>
+        </div>
+      </div>
+    </div>
+    <script src="/static/admin.js"></script>
+  </body>
+</html>
+

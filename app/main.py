@@ -3,6 +3,8 @@ from __future__ import annotations
 import asyncio
 import os
 import subprocess
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -13,8 +15,9 @@ from fastapi.staticfiles import StaticFiles
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .capture import build_thumb_cmd, build_transcode_cmd
-from .config import APP_DIR, AppConfig, OVERLAYS_DIR, SESSIONS_DIR, ensure_dirs, load_config, overlays_list, presets_payload, save_config
+from .config import APP_DIR, AppConfig, BACKGROUNDS_DIR, OVERLAYS_DIR, SESSIONS_DIR, backgrounds_list, ensure_dirs, load_config, overlays_list, presets_payload, save_config
 from .sessions import cleanup_expired, create_session, is_expired, load_session, save_clip, session_dir, stop_session
+from .utils import utcnow
 
 
 ensure_dirs()
@@ -31,6 +34,7 @@ env.filters["tojson"] = lambda v: __import__("json").dumps(v)
 
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 app.mount("/overlays", StaticFiles(directory=str(OVERLAYS_DIR)), name="overlays")
+app.mount("/backgrounds", StaticFiles(directory=str(BACKGROUNDS_DIR)), name="backgrounds")
 
 
 def _render(name: str, **ctx: Any) -> HTMLResponse:
@@ -64,6 +68,42 @@ def _version_info() -> Dict[str, str]:
 
 record_lock = asyncio.Lock()
 
+@dataclass
+class ActiveSession:
+    code: str
+    ends_at_iso: str
+
+
+_active_session: Optional[ActiveSession] = None
+
+
+def _active_payload() -> Optional[Dict[str, Any]]:
+    global _active_session
+    if not _active_session:
+        return None
+    meta = load_session(_active_session.code)
+    if not meta or is_expired(meta) or meta.stopped_at:
+        _active_session = None
+        return None
+    try:
+        ends_at = datetime.fromisoformat(_active_session.ends_at_iso)
+    except Exception:
+        _active_session = None
+        return None
+    if utcnow() >= ends_at:
+        stop_session(_active_session.code)
+        _active_session = None
+        return None
+    cfg = _cfg()
+    return {
+        "active": True,
+        "code": _active_session.code,
+        "ends_at": _active_session.ends_at_iso,
+        "qr_url": f"{cfg.base_qr_url.rstrip('/')}/{_active_session.code}",
+        "pre_clip_delay_seconds": cfg.pre_clip_delay_seconds,
+        "clip_duration_seconds": cfg.clip_duration_seconds,
+    }
+
 
 @app.on_event("startup")
 async def _startup() -> None:
@@ -81,10 +121,18 @@ async def _startup() -> None:
 @app.get("/", response_class=HTMLResponse)
 async def index() -> HTMLResponse:
     cfg = _cfg()
+    idle_bg_url = ""
+    if cfg.idle_background_filename:
+        idle_bg_url = f"/backgrounds/{cfg.idle_background_filename}"
     return _render(
         "index.html",
         idle_text=cfg.idle_text,
+        idle_bg_url=idle_bg_url,
     )
+
+@app.get("/admin", response_class=HTMLResponse)
+async def admin_page() -> HTMLResponse:
+    return _render("admin.html")
 
 
 @app.get("/config", response_class=HTMLResponse)
@@ -94,6 +142,7 @@ async def config_page() -> HTMLResponse:
         "config.html",
         cfg=cfg,
         overlays=overlays_list(),
+        backgrounds=backgrounds_list(),
         presets=presets_payload(),
     )
 
@@ -173,6 +222,19 @@ async def api_upload_overlay(file: UploadFile = File(...)) -> JSONResponse:
     dest.write_bytes(content)
     return JSONResponse({"ok": True, "filename": name, "overlays": overlays_list()})
 
+@app.post("/api/background/upload")
+async def api_upload_background(file: UploadFile = File(...)) -> JSONResponse:
+    ensure_dirs()
+    name = Path(file.filename or "idle_bg.jpg").name
+    if Path(name).suffix.lower() not in [".png", ".jpg", ".jpeg", ".webp"]:
+        raise HTTPException(status_code=400, detail="Image must be png/jpg/jpeg/webp")
+    dest = (BACKGROUNDS_DIR / name).resolve()
+    if dest.parent != BACKGROUNDS_DIR.resolve():
+        raise HTTPException(status_code=400, detail="bad filename")
+    content = await file.read()
+    dest.write_bytes(content)
+    return JSONResponse({"ok": True, "filename": name, "backgrounds": backgrounds_list()})
+
 
 @app.get("/api/presets")
 async def api_presets() -> JSONResponse:
@@ -181,8 +243,14 @@ async def api_presets() -> JSONResponse:
 
 @app.post("/api/session/start")
 async def api_session_start() -> JSONResponse:
+    global _active_session
+    active = _active_payload()
+    if active:
+        raise HTTPException(status_code=409, detail="session already active")
     cfg = _cfg()
     meta = create_session(cfg.session_ttl_hours)
+    ends_at = utcnow() + timedelta(seconds=cfg.session_duration_seconds)
+    _active_session = ActiveSession(code=meta.code, ends_at_iso=ends_at.isoformat())
     # base_qr_url is a prefix like http://host:8000/s
     qr_url = f"{cfg.base_qr_url.rstrip('/')}/{meta.code}"
     return JSONResponse(
@@ -190,16 +258,35 @@ async def api_session_start() -> JSONResponse:
             "code": meta.code,
             "qr_url": qr_url,
             "expires_at": meta.expires_at,
+            "ends_at": ends_at.isoformat(),
             "session_duration_seconds": cfg.session_duration_seconds,
             "pre_clip_delay_seconds": cfg.pre_clip_delay_seconds,
             "clip_duration_seconds": cfg.clip_duration_seconds,
         }
     )
 
+@app.get("/api/session/active")
+async def api_session_active() -> JSONResponse:
+    payload = _active_payload()
+    if not payload:
+        return JSONResponse({"active": False})
+    return JSONResponse(payload)
+
 
 @app.post("/api/session/{code}/stop")
 async def api_session_stop(code: str) -> JSONResponse:
+    global _active_session
     stop_session(code)
+    if _active_session and _active_session.code == code:
+        _active_session = None
+    return JSONResponse({"ok": True})
+
+@app.post("/api/session/stop-active")
+async def api_session_stop_active() -> JSONResponse:
+    global _active_session
+    if _active_session:
+        stop_session(_active_session.code)
+        _active_session = None
     return JSONResponse({"ok": True})
 
 

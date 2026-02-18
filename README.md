@@ -3,12 +3,14 @@
 Touch-first photo booth webapp intended to run on Linux Mint in a kiosk browser.
 
 ## Features (current)
-- Touch kiosk UI: idle screen, start session, record multiple clips per session.
+- Touch kiosk UI: idle screen, record clips only when admin has started a session.
+- Admin page (`/admin`) starts/stops session.
 - Live preview (browser `getUserMedia`) with optional PNG border overlay.
 - Records video + audio in the browser, uploads to server; server transcodes to MP4 (ffmpeg) and generates thumbnails.
 - Per-session QR URL that shows a gallery for 24 hours, then expires.
 - Gallery shows thumbnails and provides download buttons (forces download, no in-browser playback).
 - Config UI: timers, base URL, devices, crop, brightness/contrast/saturation, codecs/bitrates, overlay upload/select.
+- Config UI also supports idle background image upload/select for no-session state.
 - Shows current app version + git commit in the top-right corner on kiosk screen.
 
 ## Requirements (Linux Mint)

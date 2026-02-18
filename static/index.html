@@ -19,6 +19,7 @@
       </div>
 
       <div class="idle" id="idle">
+        <div class="idle-bg" id="idleBg" {% if idle_bg_url %}style="background-image:url('{{ idle_bg_url }}')"{% endif %}></div>
         <div class="floaty" id="idleText">{{ idle_text }}</div>
       </div>
 
@@ -32,20 +33,15 @@
           <div class="pill">
             <div class="mono" id="status">Idle</div>
           </div>
-          <div class="pill">
-            <div class="mono">Config</div>
-            <button class="btn-secondary" style="padding:10px 14px;font-size:16px" onclick="location.href='/config'">Open</button>
-          </div>
+          <div class="pill"><div class="mono">Booth Screen</div></div>
         </div>
 
         <div class="main">
           <div class="card" id="card">
             <h1 class="title" id="title">Karaoke Photo Booth</h1>
-            <p class="sub" id="subtitle">Tap start, record clips, scan the QR to download for 24 hours.</p>
+            <p class="sub" id="subtitle">Waiting for admin to unlock session.</p>
             <div class="btnrow" id="btnrow">
-              <button class="btn-primary" id="startBtn">Start session</button>
-              <button class="btn-secondary" id="recordBtn" style="display:none">Record another clip</button>
-              <button class="btn-danger" id="stopBtn" style="display:none">Stop session</button>
+              <button class="btn-primary" id="recordBtn" style="display:none">Record clip</button>
             </div>
           </div>
         </div>
