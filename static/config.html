@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Config - Karaoke Photo Booth</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <meta http-equiv="Cache-Control" content="no-store" />
+  </head>
+  <body>
+    <div class="page">
+      <div class="wrap">
+        <div class="row" style="align-items:center;justify-content:space-between">
+          <div>
+            <div class="h1">Config</div>
+            <div class="small">Applies to preview and future recordings.</div>
+          </div>
+          <div class="row" style="flex:0">
+            <button class="btn-secondary" onclick="location.href='/'">Back</button>
+          </div>
+        </div>
+
+        <div class="grid" style="margin-top:14px">
+          <div class="panel">
+            <div style="font-weight:900;font-size:18px;margin-bottom:8px">QR / Session</div>
+
+            <label>Base QR URL (prefix)</label>
+            <input id="base_qr_url" value="{{ cfg.base_qr_url }}" />
+            <div class="small">Example: <span class="mono">http://192.168.1.50:8000/s</span></div>
+
+            <div class="row">
+              <div>
+                <label>Session TTL (hours)</label>
+                <input id="session_ttl_hours" type="number" value="{{ cfg.session_ttl_hours }}" />
+              </div>
+              <div>
+                <label>Session duration (sec)</label>
+                <input id="session_duration_seconds" type="number" value="{{ cfg.session_duration_seconds }}" />
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label>Wait before record (sec)</label>
+                <input id="pre_clip_delay_seconds" type="number" value="{{ cfg.pre_clip_delay_seconds }}" />
+              </div>
+              <div>
+                <label>Clip duration (sec)</label>
+                <input id="clip_duration_seconds" type="number" value="{{ cfg.clip_duration_seconds }}" />
+              </div>
+            </div>
+
+            <label>Idle text</label>
+            <input id="idle_text" value="{{ cfg.idle_text }}" />
+          </div>
+
+          <div class="panel">
+            <div style="font-weight:900;font-size:18px;margin-bottom:8px">Devices</div>
+
+            <div class="small">Used to prefer a specific camera/mic when multiple are connected (substring match on device label).</div>
+
+            <label>Preferred camera label contains</label>
+            <input id="preferred_video_device_label" value="{{ cfg.preferred_video_device_label }}" />
+            <div class="small">Example: <span class="mono">MaxHub</span> or <span class="mono">UCW20</span></div>
+
+            <label>Preferred mic label contains</label>
+            <input id="preferred_audio_device_label" value="{{ cfg.preferred_audio_device_label }}" />
+          </div>
+
+          <div class="panel">
+            <div style="font-weight:900;font-size:18px;margin-bottom:8px">Video Presets</div>
+            <label>Pick preset</label>
+            <select id="preset">
+              <option value="">(no change)</option>
+              {% for p in presets %}
+                <option value="{{ loop.index0 }}">{{ p.name }}</option>
+              {% endfor %}
+            </select>
+            <div class="small">Preset will set resolution, fps, CRF, H.264 preset, audio bitrate.</div>
+
+            <div class="row">
+              <div>
+                <label>Width</label>
+                <input id="width" type="number" value="{{ cfg.width }}" />
+              </div>
+              <div>
+                <label>Height</label>
+                <input id="height" type="number" value="{{ cfg.height }}" />
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label>FPS</label>
+                <input id="fps" type="number" value="{{ cfg.fps }}" />
+              </div>
+              <div>
+                <label>H.264 CRF</label>
+                <input id="h264_crf" type="number" value="{{ cfg.h264_crf }}" />
+              </div>
+            </div>
+
+            <label>H.264 preset</label>
+            <input id="h264_preset" value="{{ cfg.h264_preset }}" />
+            <div class="small">Examples: ultrafast, veryfast, fast, medium.</div>
+          </div>
+
+          <div class="panel">
+            <div style="font-weight:900;font-size:18px;margin-bottom:8px">Audio</div>
+
+            <div class="row">
+              <div>
+                <label>Audio codec</label>
+                <input id="audio_codec" value="{{ cfg.audio_codec }}" />
+              </div>
+              <div>
+                <label>Audio bitrate (kbps)</label>
+                <input id="audio_bitrate_k" type="number" value="{{ cfg.audio_bitrate_k }}" />
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label>Sample rate</label>
+                <input id="audio_samplerate" type="number" value="{{ cfg.audio_samplerate }}" />
+              </div>
+              <div>
+                <label>Channels</label>
+                <select id="audio_channels">
+                  <option value="1" {% if cfg.audio_channels == 1 %}selected{% endif %}>1</option>
+                  <option value="2" {% if cfg.audio_channels == 2 %}selected{% endif %}>2</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div style="font-weight:900;font-size:18px;margin-bottom:8px">Image Adjust</div>
+
+            <div class="row">
+              <div>
+                <label>Brightness (-1..1)</label>
+                <input id="brightness" type="number" step="0.05" value="{{ cfg.brightness }}" />
+              </div>
+              <div>
+                <label>Contrast (0..2)</label>
+                <input id="contrast" type="number" step="0.05" value="{{ cfg.contrast }}" />
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label>Saturation (0..3)</label>
+                <input id="saturation" type="number" step="0.05" value="{{ cfg.saturation }}" />
+              </div>
+              <div>
+                <label>Overlay enabled</label>
+                <select id="overlay_enabled">
+                  <option value="false" {% if not cfg.overlay_enabled %}selected{% endif %}>No</option>
+                  <option value="true" {% if cfg.overlay_enabled %}selected{% endif %}>Yes</option>
+                </select>
+              </div>
+            </div>
+
+            <label>Overlay PNG</label>
+            <select id="overlay_filename">
+              <option value="">(none)</option>
+              {% for o in overlays %}
+                <option value="{{ o }}" {% if o == cfg.overlay_filename %}selected{% endif %}>{{ o }}</option>
+              {% endfor %}
+            </select>
+
+            <label>Upload new overlay (PNG)</label>
+            <input id="overlay_upload" type="file" accept="image/png" />
+            <div class="small">Uploaded files go to <span class="mono">data/overlays/</span></div>
+          </div>
+
+          <div class="panel">
+            <div style="font-weight:900;font-size:18px;margin-bottom:8px">Crop</div>
+            <div class="small">Basic crop fields; for precise crop you can set x/y/w/h. (Preview crop selection UI can be added next.)</div>
+
+            <label>Crop enabled</label>
+            <select id="crop_enabled">
+              <option value="false" {% if not cfg.crop.enabled %}selected{% endif %}>No</option>
+              <option value="true" {% if cfg.crop.enabled %}selected{% endif %}>Yes</option>
+            </select>
+            <div class="row">
+              <div>
+                <label>X</label>
+                <input id="crop_x" type="number" value="{{ cfg.crop.x }}" />
+              </div>
+              <div>
+                <label>Y</label>
+                <input id="crop_y" type="number" value="{{ cfg.crop.y }}" />
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label>W</label>
+                <input id="crop_w" type="number" value="{{ cfg.crop.w }}" />
+              </div>
+              <div>
+                <label>H</label>
+                <input id="crop_h" type="number" value="{{ cfg.crop.h }}" />
+              </div>
+            </div>
+
+            <div style="margin-top:12px">
+              <div class="small">Preview (uses current config):</div>
+              <div style="margin-top:8px;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.10)">
+                <video id="cfgCam" autoplay playsinline muted style="width:100%;display:block;background:#000"></video>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:16px;align-items:center;justify-content:space-between">
+          <div class="small" id="msg"></div>
+          <div class="row" style="flex:0">
+            <button class="btn-secondary" id="saveBtn">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__PRESETS__ = {{ presets | tojson }};
+    </script>
+    <script src="/static/config.js"></script>
+  </body>
+</html>

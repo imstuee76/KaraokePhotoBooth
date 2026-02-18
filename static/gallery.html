@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Session {{ code }}</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <meta http-equiv="Cache-Control" content="no-store" />
+  </head>
+  <body>
+    <div class="page">
+      <div class="wrap">
+        <div class="row" style="align-items:center;justify-content:space-between">
+          <div>
+            <div class="h1">Session</div>
+            <div class="small mono">{{ code }}</div>
+          </div>
+        </div>
+
+        {% if expired %}
+          <div class="panel" style="margin-top:16px">
+            <div style="font-weight:900;font-size:22px">Expired</div>
+            <div class="small">This code is no longer valid.</div>
+          </div>
+        {% else %}
+          <div class="panel" style="margin-top:16px">
+            <div class="small">Tap download. Videos do not play in the browser.</div>
+          </div>
+
+          <div class="thumbs" style="margin-top:14px">
+            {% for c in clips %}
+              <div class="thumb">
+                {% if c.thumb %}
+                  <img src="/s/{{ code }}/thumb/{{ c.thumb }}" alt="thumb" />
+                {% else %}
+                  <div style="height:140px;border-radius:14px;background:rgba(0,0,0,.35);display:grid;place-items:center;border:1px solid rgba(255,255,255,.10)">No thumb</div>
+                {% endif %}
+                <button class="btn-secondary d" onclick="location.href='/s/{{ code }}/download/{{ c.file }}'">Download</button>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </body>
+</html>
+

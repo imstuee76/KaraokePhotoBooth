@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Karaoke Photo Booth</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <meta http-equiv="Cache-Control" content="no-store" />
+  </head>
+  <body>
+    <div class="screen">
+      <div class="preview">
+        <video id="cam" autoplay playsinline muted style="display:none"></video>
+        <canvas id="stage" aria-label="preview"></canvas>
+      </div>
+
+      <div class="countdown" id="countdown">
+        <div class="num" id="countNum">3</div>
+      </div>
+
+      <div class="idle" id="idle">
+        <div class="floaty" id="idleText">{{ idle_text }}</div>
+      </div>
+
+      <div class="qr" id="qrBox">
+        <img id="qrImg" alt="qr" />
+      </div>
+
+      <div class="hud">
+        <div class="version-tag" id="versionTag">v- / -</div>
+        <div class="topbar">
+          <div class="pill">
+            <div class="mono" id="status">Idle</div>
+          </div>
+          <div class="pill">
+            <div class="mono">Config</div>
+            <button class="btn-secondary" style="padding:10px 14px;font-size:16px" onclick="location.href='/config'">Open</button>
+          </div>
+        </div>
+
+        <div class="main">
+          <div class="card" id="card">
+            <h1 class="title" id="title">Karaoke Photo Booth</h1>
+            <p class="sub" id="subtitle">Tap start, record clips, scan the QR to download for 24 hours.</p>
+            <div class="btnrow" id="btnrow">
+              <button class="btn-primary" id="startBtn">Start session</button>
+              <button class="btn-secondary" id="recordBtn" style="display:none">Record another clip</button>
+              <button class="btn-danger" id="stopBtn" style="display:none">Stop session</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="sessionbar">
+          <div class="pill">
+            <div class="timer" id="sessionTimer">00:00</div>
+          </div>
+          <div class="pill">
+            <div class="mono" id="codePill"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

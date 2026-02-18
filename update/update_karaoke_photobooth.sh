@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Linux Mint updater for KaraokePhotoBooth.
+# - Pulls only the app folder from GitHub using sparse checkout
+# - Preserves /data (config, sessions, overlays)
+# - Reapplies safe permissions to /data
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ENV_FILE="$SCRIPT_DIR/.env"
+if [ ! -f "$ENV_FILE" ] && [ -f "$SCRIPT_DIR/../.env" ]; then
+  ENV_FILE="$SCRIPT_DIR/../.env"
+fi
+if [ ! -f "$ENV_FILE" ]; then
+  echo ".env not found in $SCRIPT_DIR or parent directory"
+  exit 1
+fi
+
+set -a
+source "$ENV_FILE"
+set +a
+
+# Normalize values from CRLF .env files.
+trim_cr() { printf "%s" "${1:-}" | tr -d '\r'; }
+REPO="$(trim_cr "${REPO:-}")"
+GITHUB_TOKEN="$(trim_cr "${GITHUB_TOKEN:-}")"
+REPO_SUBDIR="$(trim_cr "${REPO_SUBDIR:-.}")"
+APP_DIR="$(trim_cr "${APP_DIR:-$SCRIPT_DIR/../karaoke_photobooth}")"
+BRANCH="$(trim_cr "${BRANCH:-main}")"
+
+: "${REPO:?REPO is required in .env, e.g. imstuee76/KaraokePhotoBooth}"
+REPO_URL="https://github.com/${REPO}.git"
+
+# Prefer auth header (works even when token has special URL chars).
+GIT_AUTH_ARGS=()
+if [ -n "${GITHUB_TOKEN:-}" ]; then
+  if command -v base64 >/dev/null 2>&1; then
+    BASIC="$(printf "x-access-token:%s" "$GITHUB_TOKEN" | base64 | tr -d '\n')"
+    GIT_AUTH_ARGS=(-c "http.extraheader=AUTHORIZATION: basic ${BASIC}")
+  fi
+fi
+
+git_auth() {
+  git "${GIT_AUTH_ARGS[@]}" "$@"
+}
+
+mkdir -p "$(dirname "$APP_DIR")"
+
+DATA_DIR="$APP_DIR/data"
+TMP_BACKUP="$(mktemp -d)"
+TMP_SRC="$(mktemp -d)"
+cleanup() { rm -rf "$TMP_BACKUP" "$TMP_SRC"; }
+trap cleanup EXIT
+
+if [ -d "$DATA_DIR" ]; then
+  cp -a "$DATA_DIR" "$TMP_BACKUP/data_backup"
+fi
+
+# Fetch repo and optionally sparse-checkout a subfolder.
+if [ "$REPO_SUBDIR" = "." ] || [ -z "$REPO_SUBDIR" ] || [ "$REPO_SUBDIR" = "/" ]; then
+  git_auth clone --depth 1 --filter=blob:none --branch "$BRANCH" "$REPO_URL" "$TMP_SRC/repo"
+  SRC_DIR="$TMP_SRC/repo"
+else
+  git_auth clone --depth 1 --filter=blob:none --sparse --branch "$BRANCH" "$REPO_URL" "$TMP_SRC/repo"
+  git -C "$TMP_SRC/repo" sparse-checkout set --cone "$REPO_SUBDIR"
+  SRC_DIR="$TMP_SRC/repo/$REPO_SUBDIR"
+  if [ ! -d "$SRC_DIR" ]; then
+    echo "Repo subdir not found: $REPO_SUBDIR"
+    exit 1
+  fi
+fi
+
+# Sync app files only (do not overwrite data/.env/.venv).
+mkdir -p "$APP_DIR"
+if command -v rsync >/dev/null 2>&1; then
+  rsync -a --delete \
+    --exclude "data/" \
+    --exclude ".env" \
+    --exclude ".venv/" \
+    "$SRC_DIR"/ "$APP_DIR"/
+else
+  find "$APP_DIR" -mindepth 1 -maxdepth 1 \
+    ! -name data ! -name .env ! -name .venv \
+    -exec rm -rf {} +
+  cp -a "$SRC_DIR"/. "$APP_DIR"/
+fi
+
+mkdir -p "$APP_DIR/data"
+if [ -d "$TMP_BACKUP/data_backup" ]; then
+  cp -a "$TMP_BACKUP/data_backup/." "$APP_DIR/data/"
+fi
+
+# Ensure data remains writable for booth app user.
+chmod -R u+rwX,go-rwx "$APP_DIR/data"
+find "$APP_DIR/data" -type d -exec chmod 750 {} \;
+find "$APP_DIR/data" -type f -exec chmod 640 {} \;
+
+# Optional: prepare venv + deps.
+if command -v python3 >/dev/null 2>&1; then
+  if [ ! -d "$APP_DIR/.venv" ]; then
+    python3 -m venv "$APP_DIR/.venv"
+  fi
+  source "$APP_DIR/.venv/bin/activate"
+  pip install -r "$APP_DIR/requirements.txt"
+fi
+
+VERSION="unknown"
+if [ -f "$APP_DIR/VERSION" ]; then
+  VERSION="$(cat "$APP_DIR/VERSION")"
+fi
+COMMIT="$(git -C "$TMP_SRC/repo" rev-parse --short HEAD)"
+echo "Updated KaraokePhotoBooth to version $VERSION ($COMMIT)"
