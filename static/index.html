@@ -29,6 +29,15 @@
 
       <div class="hud">
         <div class="version-tag" id="versionTag">v- / -</div>
+        <div class="live-panel" id="livePanel" style="display:none">
+          <div class="live-title">Live Edit Mode</div>
+          <div class="live-row">
+            <button class="btn-secondary live-mini" id="ovSmaller">-</button>
+            <button class="btn-secondary live-mini" id="ovBigger">+</button>
+            <span class="mono" id="liveHint">Drag overlay on screen</span>
+          </div>
+          <div class="live-overlays" id="liveOverlays"></div>
+        </div>
         <div class="topbar">
           <div class="pill">
             <div class="mono" id="status">Idle</div>

@@ -75,6 +75,7 @@ class ActiveSession:
 
 
 _active_session: Optional[ActiveSession] = None
+_live_tune: Optional[Dict[str, Any]] = None
 
 
 def _active_payload() -> Optional[Dict[str, Any]]:
@@ -102,6 +103,18 @@ def _active_payload() -> Optional[Dict[str, Any]]:
         "qr_url": f"{cfg.base_qr_url.rstrip('/')}/{_active_session.code}",
         "pre_clip_delay_seconds": cfg.pre_clip_delay_seconds,
         "clip_duration_seconds": cfg.clip_duration_seconds,
+    }
+
+
+def _live_payload() -> Dict[str, Any]:
+    global _live_tune
+    if not _live_tune:
+        return {"active": False}
+    return {
+        "active": True,
+        "values": _live_tune.get("values", {}),
+        "updated_at": _live_tune.get("updated_at", ""),
+        "overlays": overlays_list(),
     }
 
 
@@ -207,6 +220,67 @@ async def api_set_config(payload: Dict[str, Any]) -> JSONResponse:
         if hasattr(cfg, k):
             setattr(cfg, k, v)
     save_config(cfg)
+    return JSONResponse({"ok": True})
+
+
+@app.get("/api/live-tune")
+async def api_live_tune_get() -> JSONResponse:
+    return JSONResponse(_live_payload())
+
+
+@app.post("/api/live-tune/start")
+async def api_live_tune_start() -> JSONResponse:
+    global _live_tune
+    cfg = _cfg()
+    _live_tune = {
+        "values": cfg.__dict__ | {"crop": cfg.crop.__dict__},
+        "updated_at": utcnow().isoformat(),
+    }
+    return JSONResponse({"ok": True, **_live_payload()})
+
+
+@app.post("/api/live-tune/update")
+async def api_live_tune_update(payload: Dict[str, Any]) -> JSONResponse:
+    global _live_tune
+    if not _live_tune:
+        _live_tune = {"values": {}, "updated_at": utcnow().isoformat()}
+    vals = _live_tune["values"]
+    for k, v in payload.items():
+        if k == "crop" and isinstance(v, dict):
+            crop = vals.get("crop", {})
+            for ck, cv in v.items():
+                crop[ck] = cv
+            vals["crop"] = crop
+        else:
+            vals[k] = v
+    _live_tune["updated_at"] = utcnow().isoformat()
+    return JSONResponse({"ok": True, **_live_payload()})
+
+
+@app.post("/api/live-tune/save")
+async def api_live_tune_save() -> JSONResponse:
+    global _live_tune
+    if not _live_tune:
+        return JSONResponse({"ok": True, "saved": False})
+    cfg = _cfg()
+    vals = _live_tune.get("values", {})
+    for k, v in vals.items():
+        if k == "crop" and isinstance(v, dict):
+            for ck, cv in v.items():
+                if hasattr(cfg.crop, ck):
+                    setattr(cfg.crop, ck, cv)
+            continue
+        if hasattr(cfg, k):
+            setattr(cfg, k, v)
+    save_config(cfg)
+    _live_tune = None
+    return JSONResponse({"ok": True, "saved": True})
+
+
+@app.post("/api/live-tune/stop")
+async def api_live_tune_stop() -> JSONResponse:
+    global _live_tune
+    _live_tune = None
     return JSONResponse({"ok": True})
 
 

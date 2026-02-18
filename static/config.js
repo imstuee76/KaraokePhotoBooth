@@ -1,4 +1,5 @@
 const el = (id) => document.getElementById(id);
+let liveMode = false;
 
 function msg(t, bad = false) {
   const m = el("msg");
@@ -71,6 +72,36 @@ async function save() {
   msg("Saved. Refresh preview if needed.");
 }
 
+async function liveStart() {
+  const r = await fetch("/api/live-tune/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+  if (!r.ok) { msg("Live mode start failed", true); return; }
+  liveMode = true;
+  await livePush();
+  msg("Live mode started. Go to booth screen and adjust visually.");
+}
+
+async function liveStop() {
+  await fetch("/api/live-tune/stop", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+  liveMode = false;
+  msg("Live mode stopped.");
+}
+
+async function liveSave() {
+  const r = await fetch("/api/live-tune/save", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+  if (!r.ok) { msg("Live save failed", true); return; }
+  liveMode = false;
+  msg("Live values saved to config.");
+}
+
+async function livePush() {
+  if (!liveMode) return;
+  await fetch("/api/live-tune/update", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payloadFromForm()),
+  });
+}
+
 async function uploadOverlay() {
   const f = el("overlay_upload").files[0];
   if (!f) return;
@@ -129,9 +160,21 @@ function applyPreset() {
 }
 
 el("saveBtn").addEventListener("click", save);
+el("liveStartBtn").addEventListener("click", liveStart);
+el("liveStopBtn").addEventListener("click", liveStop);
+el("liveSaveBtn").addEventListener("click", liveSave);
 el("overlay_upload").addEventListener("change", uploadOverlay);
 el("bg_upload").addEventListener("change", uploadBackground);
 el("preset").addEventListener("change", applyPreset);
+[
+  "width","height","fps","h264_crf","h264_preset","audio_codec","audio_bitrate_k","audio_samplerate","audio_channels",
+  "brightness","contrast","saturation","overlay_enabled","overlay_filename","crop_enabled","crop_x","crop_y","crop_w","crop_h"
+].forEach((id) => {
+  const n = el(id);
+  if (!n) return;
+  n.addEventListener("input", livePush);
+  n.addEventListener("change", livePush);
+});
 msg("");
 
 // Simple camera preview (client-side) so we don't lock the device with server-side ffmpeg.

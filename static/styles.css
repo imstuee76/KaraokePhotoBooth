@@ -54,6 +54,39 @@ body{font-family: ui-rounded, "Comic Sans MS", "Trebuchet MS", system-ui, -apple
   border-radius:10px;
   padding:6px 9px;
 }
+.live-panel{
+  position:absolute;
+  left:12px;
+  right:12px;
+  bottom:74px;
+  z-index:12;
+  pointer-events:auto;
+  background:rgba(0,0,0,.66);
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:14px;
+  padding:10px;
+}
+.live-title{font-weight:800;margin-bottom:6px}
+.live-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.live-mini{padding:8px 12px;font-size:16px}
+.live-overlays{
+  display:flex;
+  gap:8px;
+  overflow:auto;
+  padding-bottom:2px;
+}
+.live-chip{
+  padding:7px 10px;
+  font-size:13px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.08);
+  white-space:nowrap;
+}
+.live-chip.on{
+  border-color:rgba(255,176,0,.8);
+  background:rgba(255,176,0,.2);
+}
 
 .topbar{
   display:flex;

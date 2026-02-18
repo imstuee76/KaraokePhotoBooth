@@ -87,6 +87,9 @@ class AppConfig:
     # Overlay
     overlay_enabled: bool = False
     overlay_filename: str = ""  # stored under data/overlays
+    overlay_x: float = 0.0
+    overlay_y: float = 0.0
+    overlay_scale: float = 1.0
 
     def sanitize(self) -> "AppConfig":
         self.session_ttl_hours = max(1, int(self.session_ttl_hours))
@@ -106,6 +109,9 @@ class AppConfig:
         self.brightness = float(_clamp(float(self.brightness), -1.0, 1.0))
         self.contrast = float(_clamp(float(self.contrast), 0.0, 2.0))
         self.saturation = float(_clamp(float(self.saturation), 0.0, 3.0))
+        self.overlay_x = float(_clamp(float(self.overlay_x), -2.0, 2.0))
+        self.overlay_y = float(_clamp(float(self.overlay_y), -2.0, 2.0))
+        self.overlay_scale = float(_clamp(float(self.overlay_scale), 0.1, 4.0))
 
         if not isinstance(self.crop, Crop):
             self.crop = Crop()
