@@ -60,6 +60,7 @@ class AppConfig:
     # Idle
     idle_text: str = "Not unlocked"
     idle_background_filename: str = ""
+    show_main_session_controls: bool = False
 
     # Browser device selection (substring match on device label; requires permission first).
     preferred_video_device_label: str = ""
@@ -92,6 +93,7 @@ class AppConfig:
         self.session_duration_seconds = max(10, int(self.session_duration_seconds))
         self.pre_clip_delay_seconds = max(0, int(self.pre_clip_delay_seconds))
         self.clip_duration_seconds = max(1, int(self.clip_duration_seconds))
+        self.show_main_session_controls = bool(self.show_main_session_controls)
 
         self.width = max(160, int(self.width))
         self.height = max(120, int(self.height))

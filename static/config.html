@@ -54,6 +54,12 @@
             <label>Idle text</label>
             <input id="idle_text" value="{{ cfg.idle_text }}" />
 
+            <label>Show main start/stop buttons (testing)</label>
+            <select id="show_main_session_controls">
+              <option value="false" {% if not cfg.show_main_session_controls %}selected{% endif %}>No</option>
+              <option value="true" {% if cfg.show_main_session_controls %}selected{% endif %}>Yes</option>
+            </select>
+
             <label>Idle background image</label>
             <select id="idle_background_filename">
               <option value="">(none - black)</option>

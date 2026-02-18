@@ -128,6 +128,7 @@ async def index() -> HTMLResponse:
         "index.html",
         idle_text=cfg.idle_text,
         idle_bg_url=idle_bg_url,
+        show_main_session_controls=cfg.show_main_session_controls,
     )
 
 @app.get("/admin", response_class=HTMLResponse)

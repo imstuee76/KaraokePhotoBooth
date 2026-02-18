@@ -291,6 +291,30 @@ function tick() {
 
 function bind() {
   el("recordBtn").addEventListener("click", recordClip);
+  const testStart = el("testStartBtn");
+  const testStop = el("testStopBtn");
+  if (testStart) {
+    testStart.addEventListener("click", async () => {
+      try {
+        setStatus("Starting session...");
+        await apiJson("/api/session/start", {});
+        await syncActive();
+      } catch (e) {
+        setStatus("Error: " + e.message);
+      }
+    });
+  }
+  if (testStop) {
+    testStop.addEventListener("click", async () => {
+      try {
+        setStatus("Stopping session...");
+        await apiJson("/api/session/stop-active", {});
+        await syncActive();
+      } catch (e) {
+        setStatus("Error: " + e.message);
+      }
+    });
+  }
 }
 
 async function init() {
@@ -303,4 +327,3 @@ async function init() {
 }
 
 init();
-

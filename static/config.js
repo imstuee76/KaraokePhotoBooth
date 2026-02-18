@@ -21,6 +21,7 @@ function payloadFromForm() {
     pre_clip_delay_seconds: getVal("pre_clip_delay_seconds"),
     clip_duration_seconds: getVal("clip_duration_seconds"),
     idle_text: getVal("idle_text"),
+    show_main_session_controls: getVal("show_main_session_controls") === "true",
     idle_background_filename: getVal("idle_background_filename"),
 
     preferred_video_device_label: getVal("preferred_video_device_label"),
