@@ -20,13 +20,11 @@ Touch-first photo booth webapp intended to run on Linux Mint in a kiosk browser.
 ## Quick start (Linux)
 ```bash
 cd karaoke_photobooth
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python -m app.main
+./run.sh
 ```
 
 Then open `http://localhost:8000/` (or run Chromium in kiosk mode pointing to it).
+`run.sh` checks required dependencies and installs missing ones on Linux Mint/Debian systems.
 
 ## Data folders
 - `karaoke_photobooth/data/config.json`: persisted config
