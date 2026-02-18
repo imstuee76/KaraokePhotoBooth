@@ -11,6 +11,7 @@ DATA_DIR = APP_DIR / "data"
 CONFIG_PATH = DATA_DIR / "config.json"
 OVERLAYS_DIR = DATA_DIR / "overlays"
 BACKGROUNDS_DIR = DATA_DIR / "backgrounds"
+LOGS_DIR = DATA_DIR / "logs"
 SESSIONS_DIR = DATA_DIR / "sessions"
 
 
@@ -128,6 +129,7 @@ def ensure_dirs() -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     OVERLAYS_DIR.mkdir(parents=True, exist_ok=True)
     BACKGROUNDS_DIR.mkdir(parents=True, exist_ok=True)
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
     SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
 
 

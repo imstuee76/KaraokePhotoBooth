@@ -51,6 +51,7 @@ LOG_DIR="$APP_DIR/data/logs"
 mkdir -p "$LOG_DIR"
 chmod 750 "$APP_DIR/data" "$LOG_DIR" 2>/dev/null || true
 LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"
+ERR_FILE="${LOG_FILE%.log}_errors.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 echo "=== KaraokePhotoBooth updater start: $(date -Iseconds) ==="
 echo "APP_DIR=$APP_DIR"
@@ -147,4 +148,6 @@ fi
 COMMIT="$(git -C "$TMP_SRC/repo" rev-parse --short HEAD)"
 echo "Updated KaraokePhotoBooth to version $VERSION ($COMMIT)"
 echo "=== KaraokePhotoBooth updater end: $(date -Iseconds) ==="
+grep -iE "traceback|fatal|error|exception" "$LOG_FILE" > "$ERR_FILE" || true
 chmod 640 "$LOG_FILE" 2>/dev/null || true
+chmod 640 "$ERR_FILE" 2>/dev/null || true

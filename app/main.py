@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import os
+import platform
 import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -15,13 +17,73 @@ from fastapi.staticfiles import StaticFiles
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .capture import build_thumb_cmd, build_transcode_cmd
-from .config import APP_DIR, AppConfig, BACKGROUNDS_DIR, OVERLAYS_DIR, SESSIONS_DIR, backgrounds_list, ensure_dirs, load_config, overlays_list, presets_payload, save_config
+from .config import APP_DIR, AppConfig, BACKGROUNDS_DIR, LOGS_DIR, OVERLAYS_DIR, SESSIONS_DIR, backgrounds_list, ensure_dirs, load_config, overlays_list, presets_payload, save_config
 from .sessions import cleanup_expired, create_session, is_expired, load_session, save_clip, session_dir, stop_session
 from .utils import utcnow
 
 
 ensure_dirs()
 app = FastAPI(title="Karaoke Photo Booth")
+
+_run_ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+_web_log_path = LOGS_DIR / f"webapp_{_run_ts}.log"
+_err_log_path = LOGS_DIR / f"errors_{_run_ts}.log"
+_sys_log_path = LOGS_DIR / f"system_{_run_ts}.log"
+
+
+def _setup_logging() -> None:
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
+
+    root = logging.getLogger()
+    root.setLevel(logging.INFO)
+
+    fmt = logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s")
+
+    fh = logging.FileHandler(_web_log_path, encoding="utf-8")
+    fh.setLevel(logging.INFO)
+    fh.setFormatter(fmt)
+    root.addHandler(fh)
+
+    eh = logging.FileHandler(_err_log_path, encoding="utf-8")
+    eh.setLevel(logging.ERROR)
+    eh.setFormatter(fmt)
+    root.addHandler(eh)
+
+    # Make uvicorn loggers also write into our handlers.
+    for name in ["uvicorn", "uvicorn.error", "uvicorn.access", "fastapi"]:
+        logging.getLogger(name).propagate = True
+
+
+def _write_system_log() -> None:
+    try:
+        info = _version_info()
+        ffmpeg = ""
+        try:
+            ffmpeg = subprocess.check_output(["ffmpeg", "-version"], text=True, stderr=subprocess.DEVNULL).splitlines()[0]
+        except Exception:
+            ffmpeg = "ffmpeg: not found"
+
+        _sys_log_path.write_text(
+            "\n".join(
+                [
+                    f"timestamp={datetime.now().isoformat()}",
+                    f"version={info.get('version','')}",
+                    f"commit={info.get('commit','')}",
+                    f"python={platform.python_version()}",
+                    f"platform={platform.platform()}",
+                    ffmpeg,
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+    except Exception:
+        pass
+
+
+_setup_logging()
+_write_system_log()
+log = logging.getLogger("karaoke_photobooth")
 
 STATIC_DIR = APP_DIR / "static"
 TEMPLATES_DIR = STATIC_DIR  # keep simple: html files are templates
@@ -120,6 +182,8 @@ def _live_payload() -> Dict[str, Any]:
 
 @app.on_event("startup")
 async def _startup() -> None:
+    log.info("Webapp startup (logs=%s, errors=%s, system=%s)", _web_log_path.name, _err_log_path.name, _sys_log_path.name)
+
     async def _cleanup_loop() -> None:
         while True:
             try:
@@ -326,6 +390,7 @@ async def api_session_start() -> JSONResponse:
     meta = create_session(cfg.session_ttl_hours)
     ends_at = utcnow() + timedelta(seconds=cfg.session_duration_seconds)
     _active_session = ActiveSession(code=meta.code, ends_at_iso=ends_at.isoformat())
+    log.info("Session started code=%s ends_at=%s", meta.code, ends_at.isoformat())
     # base_qr_url is a prefix like http://host:8000/s
     qr_url = f"{cfg.base_qr_url.rstrip('/')}/{meta.code}"
     return JSONResponse(
@@ -354,12 +419,14 @@ async def api_session_stop(code: str) -> JSONResponse:
     stop_session(code)
     if _active_session and _active_session.code == code:
         _active_session = None
+    log.info("Session stopped code=%s", code)
     return JSONResponse({"ok": True})
 
 @app.post("/api/session/stop-active")
 async def api_session_stop_active() -> JSONResponse:
     global _active_session
     if _active_session:
+        log.info("Session stop-active code=%s", _active_session.code)
         stop_session(_active_session.code)
         _active_session = None
     return JSONResponse({"ok": True})
@@ -410,9 +477,11 @@ async def api_session_upload(code: str, file: UploadFile = File(...)) -> JSONRes
         raw_file.write_bytes(content)
 
         cmd = build_transcode_cmd(cfg, raw_file, mp4_file)
+        log.info("Transcode start code=%s out=%s", code, mp4_file.name)
         proc = await asyncio.create_subprocess_exec(*cmd)
         rc = await proc.wait()
         if rc != 0 or not mp4_file.exists():
+            log.error("Transcode failed code=%s rc=%s", code, rc)
             raise HTTPException(status_code=500, detail="transcode failed (ffmpeg)")
 
         tcmd = build_thumb_cmd(mp4_file, thumb_file)
@@ -421,6 +490,7 @@ async def api_session_upload(code: str, file: UploadFile = File(...)) -> JSONRes
 
         # Save meta referencing the MP4.
         save_clip(code, mp4_file.name, thumb_file.name if thumb_file.exists() else "")
+        log.info("Clip saved code=%s file=%s", code, mp4_file.name)
 
         # Delete raw upload to save space (best-effort).
         try:
