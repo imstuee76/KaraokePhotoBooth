@@ -33,7 +33,7 @@ git push
 1. Put `.env` beside `update/update_karaoke_photobooth.sh` or project root:
 ```env
 GITHUB_TOKEN=ghp_xxx
-REPO=imstuee76/KaraokePhotoBooth
+REPO=imstuee75/KaraokePhotoBooth
 REPO_SUBDIR=.
 BRANCH=main
 APP_DIR=/opt/karaoke_photobooth
