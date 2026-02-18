@@ -25,7 +25,7 @@ from .utils import utcnow
 ensure_dirs()
 app = FastAPI(title="Karaoke Photo Booth")
 
-_run_ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+_run_ts = datetime.now().strftime("%d-%m-%y_%H-%M-%S")
 _web_log_path = LOGS_DIR / f"webapp_{_run_ts}.log"
 _err_log_path = LOGS_DIR / f"errors_{_run_ts}.log"
 _sys_log_path = LOGS_DIR / f"system_{_run_ts}.log"
@@ -37,7 +37,10 @@ def _setup_logging() -> None:
     root = logging.getLogger()
     root.setLevel(logging.INFO)
 
-    fmt = logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s")
+    fmt = logging.Formatter(
+        "%(asctime)s %(levelname)s %(name)s: %(message)s",
+        datefmt="%d-%m-%y %H-%M-%S",
+    )
 
     fh = logging.FileHandler(_web_log_path, encoding="utf-8")
     fh.setLevel(logging.INFO)
@@ -66,7 +69,7 @@ def _write_system_log() -> None:
         _sys_log_path.write_text(
             "\n".join(
                 [
-                    f"timestamp={datetime.now().isoformat()}",
+                    f"timestamp={datetime.now().strftime('%d-%m-%y %H-%M-%S')}",
                     f"version={info.get('version','')}",
                     f"commit={info.get('commit','')}",
                     f"python={platform.python_version()}",
