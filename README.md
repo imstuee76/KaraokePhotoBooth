@@ -41,6 +41,7 @@ Then open `http://localhost:8000/` (or run Chromium in kiosk mode pointing to it
   - `scripts/release_commit.ps1`
 - Device updater:
   - `update/update_karaoke_photobooth.sh` (pulls repo root by default, preserves `/data`, and sets safe permissions)
+  - Logs each update run to `data/logs/update_YYYYMMDD_HHMMSS.log`
 - Full workflow: `GIT_UPDATE.md`
 
 ## Notes

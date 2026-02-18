@@ -33,7 +33,7 @@ git push
 1. Put `.env` beside `update/update_karaoke_photobooth.sh` or project root:
 ```env
 GITHUB_TOKEN=ghp_xxx
-REPO=imstuee75/KaraokePhotoBooth
+REPO=imstuee76/KaraokePhotoBooth
 REPO_SUBDIR=.
 BRANCH=main
 APP_DIR=/opt/karaoke_photobooth
@@ -45,3 +45,4 @@ chmod +x update/update_karaoke_photobooth.sh
 ```
 
 The updater syncs `REPO_SUBDIR` into `APP_DIR` (`.` means repo root), preserves `/data`, and reapplies secure permissions.
+It also writes a full log for each run to `APP_DIR/data/logs/update_YYYYMMDD_HHMMSS.log`.

@@ -31,6 +31,17 @@ BRANCH="$(trim_cr "${BRANCH:-main}")"
 : "${REPO:?REPO is required in .env, e.g. imstuee76/KaraokePhotoBooth}"
 REPO_URL="https://github.com/${REPO}.git"
 
+LOG_DIR="$APP_DIR/data/logs"
+mkdir -p "$LOG_DIR"
+chmod 750 "$APP_DIR/data" "$LOG_DIR" 2>/dev/null || true
+LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"
+exec > >(tee -a "$LOG_FILE") 2>&1
+echo "=== KaraokePhotoBooth updater start: $(date -Iseconds) ==="
+echo "APP_DIR=$APP_DIR"
+echo "REPO=$REPO"
+echo "REPO_SUBDIR=$REPO_SUBDIR"
+echo "BRANCH=$BRANCH"
+
 # Prefer auth header (works even when token has special URL chars).
 GIT_AUTH_ARGS=()
 if [ -n "${GITHUB_TOKEN:-}" ]; then
@@ -95,6 +106,16 @@ chmod -R u+rwX,go-rwx "$APP_DIR/data"
 find "$APP_DIR/data" -type d -exec chmod 750 {} \;
 find "$APP_DIR/data" -type f -exec chmod 640 {} \;
 
+# Ensure runnable scripts keep execute permissions after update.
+for f in \
+  "$APP_DIR/run.sh" \
+  "$APP_DIR/update/update_karaoke_photobooth.sh"
+do
+  [ -f "$f" ] && chmod 750 "$f"
+done
+[ -d "$APP_DIR/scripts" ] && find "$APP_DIR/scripts" -maxdepth 1 -type f -name "*.sh" -exec chmod 750 {} \;
+[ -d "$APP_DIR/update" ] && find "$APP_DIR/update" -maxdepth 1 -type f -name "*.sh" -exec chmod 750 {} \;
+
 # Optional: prepare venv + deps.
 if command -v python3 >/dev/null 2>&1; then
   if [ ! -d "$APP_DIR/.venv" ]; then
@@ -110,3 +131,5 @@ if [ -f "$APP_DIR/VERSION" ]; then
 fi
 COMMIT="$(git -C "$TMP_SRC/repo" rev-parse --short HEAD)"
 echo "Updated KaraokePhotoBooth to version $VERSION ($COMMIT)"
+echo "=== KaraokePhotoBooth updater end: $(date -Iseconds) ==="
+chmod 640 "$LOG_FILE" 2>/dev/null || true
