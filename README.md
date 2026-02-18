@@ -47,3 +47,4 @@ Then open `http://localhost:8000/` (or run Chromium in kiosk mode pointing to it
 ## Notes
 - Camera/mic access is done in the browser. Use `http://localhost:8000/` on the kiosk device so `getUserMedia` works without HTTPS.
 - `ffmpeg` is used server-side only to transcode uploads and create thumbnails.
+- For updater installs, set `APP_DIR` explicitly in `.env` to your actual app path (example: `/home/arcade/karaoke_photobooth`) to avoid nested folders.

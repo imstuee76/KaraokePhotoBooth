@@ -25,8 +25,24 @@ trim_cr() { printf "%s" "${1:-}" | tr -d '\r'; }
 REPO="$(trim_cr "${REPO:-}")"
 GITHUB_TOKEN="$(trim_cr "${GITHUB_TOKEN:-}")"
 REPO_SUBDIR="$(trim_cr "${REPO_SUBDIR:-.}")"
-APP_DIR="$(trim_cr "${APP_DIR:-$SCRIPT_DIR/../karaoke_photobooth}")"
 BRANCH="$(trim_cr "${BRANCH:-main}")"
+
+# Resolve app directory safely.
+# 1) Use APP_DIR from env if provided.
+# 2) If script is inside app/update, app dir is parent.
+# 3) If script is in external updater folder, fallback to sibling karaoke_photobooth.
+if [ -n "${APP_DIR:-}" ]; then
+  APP_DIR="$(trim_cr "$APP_DIR")"
+else
+  PARENT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+  if [ -f "$PARENT_DIR/app/main.py" ] && [ -f "$PARENT_DIR/requirements.txt" ]; then
+    APP_DIR="$PARENT_DIR"
+  elif [ -f "$PARENT_DIR/karaoke_photobooth/app/main.py" ]; then
+    APP_DIR="$PARENT_DIR/karaoke_photobooth"
+  else
+    APP_DIR="$PARENT_DIR"
+  fi
+fi
 
 : "${REPO:?REPO is required in .env, e.g. imstuee76/KaraokePhotoBooth}"
 REPO_URL="https://github.com/${REPO}.git"
@@ -84,15 +100,14 @@ fi
 # Sync app files only (do not overwrite data/.env/.venv).
 mkdir -p "$APP_DIR"
 if command -v rsync >/dev/null 2>&1; then
-  rsync -a --delete \
+  rsync -a \
     --exclude "data/" \
     --exclude ".env" \
+    --exclude "update/.env" \
     --exclude ".venv/" \
     "$SRC_DIR"/ "$APP_DIR"/
 else
-  find "$APP_DIR" -mindepth 1 -maxdepth 1 \
-    ! -name data ! -name .env ! -name .venv \
-    -exec rm -rf {} +
+  # Non-destructive fallback copy (no delete).
   cp -a "$SRC_DIR"/. "$APP_DIR"/
 fi
 

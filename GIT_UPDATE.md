@@ -46,3 +46,4 @@ chmod +x update/update_karaoke_photobooth.sh
 
 The updater syncs `REPO_SUBDIR` into `APP_DIR` (`.` means repo root), preserves `/data`, and reapplies secure permissions.
 It also writes a full log for each run to `APP_DIR/data/logs/update_YYYYMMDD_HHMMSS.log`.
+It does non-destructive sync (no `--delete`) and preserves `.env`, `update/.env`, `.venv`, and `/data`.
