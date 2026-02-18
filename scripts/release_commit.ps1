@@ -2,26 +2,37 @@ $ErrorActionPreference = "Stop"
 
 param(
   [Parameter(Mandatory=$true)][string]$Note,
-  [ValidateSet("patch","minor","major")][string]$Bump = "patch"
+  [ValidateSet("patch","major")][string]$Bump = "patch"
 )
 
 $RootDir = Split-Path -Parent $PSScriptRoot
 Set-Location $RootDir
 
 $ver = (Get-Content VERSION -Raw).Trim()
-$parts = $ver.Split(".")
-if ($parts.Length -ne 3) { throw "VERSION must be x.y.z" }
-[int]$maj = $parts[0]
-[int]$min = $parts[1]
-[int]$pat = $parts[2]
-
-switch ($Bump) {
-  "major" { $maj++; $min = 0; $pat = 0 }
-  "minor" { $min++; $pat = 0 }
-  "patch" { $pat++ }
+$m = [regex]::Match($ver, '^(\d+)\.(\d{2})$')
+if ($m.Success) {
+  [int]$maj = $m.Groups[1].Value
+  [int]$cnt = $m.Groups[2].Value
+} elseif ($ver -match '^\d+\.\d+\.\d+$') {
+  # Legacy semver migration fallback.
+  [int]$maj = 1
+  [int]$cnt = 1
+} else {
+  throw "VERSION must be X.YY (example: 1.01)"
 }
 
-$newVer = "$maj.$min.$pat"
+switch ($Bump) {
+  "major" { $maj++; $cnt = 1 }
+  "patch" {
+    $cnt++
+    if ($cnt -gt 99) {
+      $maj++
+      $cnt = 1
+    }
+  }
+}
+
+$newVer = "{0}.{1:D2}" -f $maj, $cnt
 Set-Content -Path VERSION -Value "$newVer`n" -NoNewline
 
 $today = Get-Date -Format "yyyy-MM-dd"

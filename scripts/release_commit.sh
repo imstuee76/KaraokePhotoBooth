@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Usage:
-#   ./scripts/release_commit.sh "Short release note" [patch|minor|major]
+#   ./scripts/release_commit.sh "Short release note" [patch|major]
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT_DIR"
@@ -10,22 +10,44 @@ cd "$ROOT_DIR"
 NOTE="${1:-}"
 BUMP="${2:-patch}"
 if [ -z "$NOTE" ]; then
-  echo "Usage: $0 \"Short release note\" [patch|minor|major]"
+  echo "Usage: $0 \"Short release note\" [patch|major]"
   exit 1
 fi
 
 VER_FILE="$ROOT_DIR/VERSION"
 CUR_VER="$(cat "$VER_FILE")"
-IFS='.' read -r MAJOR MINOR PATCH <<< "$CUR_VER"
+# Version format: X.YY (examples: 1.01, 1.02)
+if [[ "$CUR_VER" =~ ^([0-9]+)\.([0-9]{2})$ ]]; then
+  MAJOR="${BASH_REMATCH[1]}"
+  COUNT="${BASH_REMATCH[2]}"
+elif [[ "$CUR_VER" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  # Legacy semver migration fallback.
+  MAJOR=1
+  COUNT=1
+else
+  echo "Invalid VERSION format '$CUR_VER'. Expected X.YY (e.g. 1.01)."
+  exit 1
+fi
 
 case "$BUMP" in
-  major) MAJOR=$((MAJOR+1)); MINOR=0; PATCH=0 ;;
-  minor) MINOR=$((MINOR+1)); PATCH=0 ;;
-  patch) PATCH=$((PATCH+1)) ;;
-  *) echo "Invalid bump type: $BUMP"; exit 1 ;;
+  major)
+    MAJOR=$((MAJOR+1))
+    COUNT=1
+    ;;
+  patch)
+    COUNT=$((10#$COUNT + 1))
+    if [ "$COUNT" -gt 99 ]; then
+      MAJOR=$((MAJOR+1))
+      COUNT=1
+    fi
+    ;;
+  *)
+    echo "Invalid bump type: $BUMP (allowed: patch|major)"
+    exit 1
+    ;;
 esac
 
-NEW_VER="${MAJOR}.${MINOR}.${PATCH}"
+NEW_VER="$(printf "%d.%02d" "$MAJOR" "$COUNT")"
 printf "%s\n" "$NEW_VER" > "$VER_FILE"
 
 TODAY="$(date +%Y-%m-%d)"

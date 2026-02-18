@@ -3,7 +3,7 @@
 This project now includes a running version number and release notes.
 
 ## Files used
-- `VERSION`: current app version (`x.y.z`)
+- `VERSION`: current app version (`X.YY`, e.g. `1.01`, `1.02`)
 - `CHANGELOG.md`: release notes by version
 - `scripts/release_commit.sh` / `scripts/release_commit.ps1`: bump version + prepend changelog + commit
 - `update/update_karaoke_photobooth.sh`: Linux Mint updater (pulls repo root by default, or a subfolder via `REPO_SUBDIR`, while preserving `/data`)
@@ -21,7 +21,8 @@ cd karaoke_photobooth
 .\scripts\release_commit.ps1 -Note "Describe the changes" -Bump patch
 ```
 
-Bump can be `patch`, `minor`, or `major`.
+Bump can be `patch` or `major`.
+`patch` increments: `1.01 -> 1.02 -> 1.03`
 The script auto-pushes after commit. Set `NO_PUSH=1` to skip push.
 
 ## Push to GitHub
