@@ -31,6 +31,12 @@ function setSessionUI(on) {
   el("qrBox").classList.toggle("on", on);
 }
 
+function applyThemeFromCfg() {
+  const c = effectiveCfg();
+  const theme = (c.theme_name || "neon_party");
+  document.body.setAttribute("data-theme", theme);
+}
+
 async function apiJson(path, bodyObj) {
   const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(bodyObj || {}) });
   if (!r.ok) {
@@ -72,6 +78,7 @@ function pickMimeType() {
 async function ensureMedia() {
   if (state.stream) return;
   state.cfg = await getJson("/api/config");
+  applyThemeFromCfg();
   const cfg = effectiveCfg();
   state.stream = await navigator.mediaDevices.getUserMedia({
     video: { width: { ideal: cfg.width || 1920 }, height: { ideal: cfg.height || 1080 }, frameRate: { ideal: cfg.fps || 30 } },
@@ -245,9 +252,11 @@ async function syncLiveTune() {
     if (live.active) {
       renderOverlayChips();
       await loadOverlay();
+      applyThemeFromCfg();
       if (!was) setStatus("Live edit mode active");
     } else if (was) {
       await loadOverlay();
+      applyThemeFromCfg();
       setStatus(state.active ? "Session active" : "Locked - waiting for admin");
     }
   } catch {}
@@ -330,4 +339,3 @@ async function init() {
 }
 
 init();
-

@@ -6,11 +6,13 @@ Touch-first photo booth webapp intended to run on Linux Mint in a kiosk browser.
 - Touch kiosk UI: idle screen, record clips only when admin has started a session.
 - Admin page (`/admin`) starts/stops session.
 - Live preview (browser `getUserMedia`) with optional PNG border overlay.
+- Theme selector (Neon Party, Retro Film, Wedding Luxe) in config.
 - Records video + audio in the browser, uploads to server; server transcodes to MP4 (ffmpeg) and generates thumbnails.
 - Per-session QR URL that shows a gallery for 24 hours, then expires.
 - Gallery shows thumbnails and provides download buttons (forces download, no in-browser playback).
 - Config UI: timers, base URL, devices, crop, brightness/contrast/saturation, codecs/bitrates, overlay upload/select.
 - Config UI also supports idle background image upload/select for no-session state.
+- Config includes visual frame picker cards so you can pick border overlays by thumbnail.
 - Shows current app version + git commit in the top-right corner on kiosk screen.
 
 ## Requirements (Linux Mint)
@@ -37,6 +39,9 @@ Mode URLs:
 - `karaoke_photobooth/data/overlays/`: uploaded border PNGs
 - `karaoke_photobooth/data/sessions/`: per-session folders with clips + thumbs + meta
 - Demo border frame included: `karaoke_photobooth/data/overlays/demo_border_overlay.png`
+- Additional demo frames:
+  - `karaoke_photobooth/data/overlays/demo_border_retro.png`
+  - `karaoke_photobooth/data/overlays/demo_border_luxe.png`
 
 ## Release + updater
 - Version file: `VERSION`

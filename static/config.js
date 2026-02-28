@@ -23,6 +23,7 @@ function payloadFromForm() {
     clip_duration_seconds: getVal("clip_duration_seconds"),
     idle_text: getVal("idle_text"),
     show_main_session_controls: getVal("show_main_session_controls") === "true",
+    theme_name: getVal("theme_name"),
     idle_background_filename: getVal("idle_background_filename"),
 
     preferred_video_device_label: getVal("preferred_video_device_label"),
@@ -121,6 +122,7 @@ async function uploadOverlay() {
     const s = o === cur ? " selected" : "";
     return `<option value="${o}"${s}>${o}</option>`;
   }).join("");
+  rebuildFramePicker(data.overlays, cur);
   msg("Overlay uploaded.");
 }
 
@@ -159,6 +161,36 @@ function applyPreset() {
   msg("Preset applied (not saved yet).");
 }
 
+function rebuildFramePicker(frames, selected) {
+  const box = el("framePicker");
+  if (!box) return;
+  const noneOn = selected ? "" : " on";
+  box.innerHTML = `<button type="button" class="frame-card${noneOn}" data-frame=""><div class="frame-none">No frame</div></button>` +
+    frames.map((o) => {
+      const on = o === selected ? " on" : "";
+      return `<button type="button" class="frame-card${on}" data-frame="${o}">
+        <img src="/overlays/${encodeURIComponent(o)}?t=${Date.now()}" alt="${o}" />
+        <span>${o}</span>
+      </button>`;
+    }).join("");
+  bindFramePicker();
+}
+
+function bindFramePicker() {
+  const box = el("framePicker");
+  if (!box) return;
+  box.querySelectorAll(".frame-card").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const name = btn.getAttribute("data-frame") || "";
+      el("overlay_filename").value = name;
+      if (name) el("overlay_enabled").value = "true";
+      box.querySelectorAll(".frame-card").forEach((x) => x.classList.remove("on"));
+      btn.classList.add("on");
+      await livePush();
+    });
+  });
+}
+
 el("saveBtn").addEventListener("click", save);
 el("liveStartBtn").addEventListener("click", liveStart);
 el("liveStopBtn").addEventListener("click", liveStop);
@@ -168,13 +200,14 @@ el("bg_upload").addEventListener("change", uploadBackground);
 el("preset").addEventListener("change", applyPreset);
 [
   "width","height","fps","h264_crf","h264_preset","audio_codec","audio_bitrate_k","audio_samplerate","audio_channels",
-  "brightness","contrast","saturation","overlay_enabled","overlay_filename","crop_enabled","crop_x","crop_y","crop_w","crop_h"
+  "brightness","contrast","saturation","overlay_enabled","overlay_filename","crop_enabled","crop_x","crop_y","crop_w","crop_h","theme_name"
 ].forEach((id) => {
   const n = el(id);
   if (!n) return;
   n.addEventListener("input", livePush);
   n.addEventListener("change", livePush);
 });
+bindFramePicker();
 msg("");
 
 // Simple camera preview (client-side) so we don't lock the device with server-side ffmpeg.

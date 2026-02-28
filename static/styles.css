@@ -9,6 +9,26 @@
   --shadow: 0 20px 60px rgba(0,0,0,.55);
   --radius:26px;
 }
+body[data-theme="neon_party"]{
+  --bg:#050505;
+  --fg:#f5f2ea;
+  --accent:#ffb000;
+  --accent2:#00d4ff;
+}
+body[data-theme="retro_film"]{
+  --bg:#140f0b;
+  --fg:#f7e7d5;
+  --accent:#f3a24f;
+  --accent2:#d4752a;
+  --panel:rgba(34,22,14,.62);
+}
+body[data-theme="wedding_luxe"]{
+  --bg:#111012;
+  --fg:#f7f0e7;
+  --accent:#d9b37a;
+  --accent2:#f6ddd2;
+  --panel:rgba(20,18,20,.58);
+}
 
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;background:var(--bg);color:var(--fg)}
@@ -218,6 +238,20 @@ button:active{transform:scale(.98)}
   50%{ transform: translate(10vw, 7vh) rotate(2deg); }
   100%{ transform: translate(-12vw, -6vh) rotate(-2deg); }
 }
+@keyframes drift_slow{
+  0%{ transform: translate(-7vw, -3vh) rotate(-1deg); }
+  50%{ transform: translate(7vw, 3vh) rotate(1deg); }
+  100%{ transform: translate(-7vw, -3vh) rotate(-1deg); }
+}
+body[data-theme="retro_film"] .idle .floaty{
+  animation: drift_slow 10s ease-in-out infinite;
+  letter-spacing: 4px;
+  text-transform: none;
+}
+body[data-theme="wedding_luxe"] .idle .floaty{
+  letter-spacing: 6px;
+  font-weight: 800;
+}
 
 .qr{
   position:absolute;
@@ -302,6 +336,51 @@ input,select{
 }
 .thumb img{width:100%; border-radius:14px; background:#000}
 .thumb .d{margin-top:10px;width:100%}
+.frame-picker{
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap:8px;
+  margin-top:8px;
+}
+.frame-card{
+  border:1px solid rgba(255,255,255,.16);
+  background:rgba(0,0,0,.32);
+  border-radius:12px;
+  padding:6px;
+  color:var(--fg);
+  text-align:left;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+.frame-card img{
+  width:100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,.14);
+  background:#000;
+}
+.frame-card span{
+  font-size:12px;
+  opacity:.85;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.frame-card.on{
+  border-color: rgba(255,176,0,.9);
+  box-shadow: 0 0 0 2px rgba(255,176,0,.25) inset;
+}
+.frame-none{
+  height:80px;
+  display:grid;
+  place-items:center;
+  border-radius:8px;
+  border:1px dashed rgba(255,255,255,.24);
+  font-size:12px;
+  opacity:.9;
+}
 
 @media (max-width: 900px){
   .grid{grid-template-columns: 1fr}

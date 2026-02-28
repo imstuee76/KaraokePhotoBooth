@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .capture import build_thumb_cmd, build_transcode_cmd
-from .config import APP_DIR, AppConfig, BACKGROUNDS_DIR, LOGS_DIR, OVERLAYS_DIR, SESSIONS_DIR, backgrounds_list, ensure_dirs, load_config, overlays_list, presets_payload, save_config
+from .config import APP_DIR, AppConfig, BACKGROUNDS_DIR, LOGS_DIR, OVERLAYS_DIR, SESSIONS_DIR, backgrounds_list, ensure_dirs, load_config, overlays_list, presets_payload, save_config, themes_payload
 from .sessions import cleanup_expired, create_session, is_expired, load_session, save_clip, session_dir, stop_session
 from .utils import utcnow
 
@@ -210,6 +210,7 @@ async def index(request: Request) -> HTMLResponse:
         "index.html",
         idle_text=cfg.idle_text,
         idle_bg_url=idle_bg_url,
+        theme_name=cfg.theme_name,
         show_config_button=show_config_button,
         show_main_session_controls=cfg.show_main_session_controls,
     )
@@ -227,6 +228,7 @@ async def config_page() -> HTMLResponse:
         cfg=cfg,
         overlays=overlays_list(),
         backgrounds=backgrounds_list(),
+        themes=themes_payload(),
         presets=presets_payload(),
     )
 

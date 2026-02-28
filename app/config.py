@@ -46,6 +46,13 @@ DEFAULT_PRESETS: List[VideoPreset] = [
     VideoPreset(name="720p30 Fast", width=1280, height=720, fps=30, crf=24, preset="ultrafast", audio_bitrate_k=128),
 ]
 
+THEME_OPTIONS: List[Dict[str, str]] = [
+    {"id": "neon_party", "name": "Neon Party", "desc": "Bold glow, high-energy gradient look."},
+    {"id": "retro_film", "name": "Retro Film", "desc": "Warm tones and classic photostrip vibe."},
+    {"id": "wedding_luxe", "name": "Wedding Luxe", "desc": "Clean elegant contrast and soft highlights."},
+]
+THEME_IDS = {t["id"] for t in THEME_OPTIONS}
+
 
 @dataclass
 class AppConfig:
@@ -62,6 +69,7 @@ class AppConfig:
     idle_text: str = "Not unlocked"
     idle_background_filename: str = ""
     show_main_session_controls: bool = False
+    theme_name: str = "neon_party"
 
     # Browser device selection (substring match on device label; requires permission first).
     preferred_video_device_label: str = ""
@@ -98,6 +106,8 @@ class AppConfig:
         self.pre_clip_delay_seconds = max(0, int(self.pre_clip_delay_seconds))
         self.clip_duration_seconds = max(1, int(self.clip_duration_seconds))
         self.show_main_session_controls = bool(self.show_main_session_controls)
+        if self.theme_name not in THEME_IDS:
+            self.theme_name = "neon_party"
 
         self.width = max(160, int(self.width))
         self.height = max(120, int(self.height))
@@ -177,6 +187,10 @@ def save_config(cfg: AppConfig) -> None:
 
 def presets_payload() -> List[Dict[str, Any]]:
     return [asdict(p) for p in DEFAULT_PRESETS]
+
+
+def themes_payload() -> List[Dict[str, str]]:
+    return list(THEME_OPTIONS)
 
 
 def _apply_dict(cfg: Any, raw: Dict[str, Any]) -> None:

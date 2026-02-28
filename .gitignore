@@ -9,3 +9,5 @@ data/sessions/
 data/overlays/*
 !data/overlays/.gitkeep
 !data/overlays/demo_border_overlay.png
+!data/overlays/demo_border_retro.png
+!data/overlays/demo_border_luxe.png

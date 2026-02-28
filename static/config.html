@@ -60,6 +60,18 @@
               <option value="true" {% if cfg.show_main_session_controls %}selected{% endif %}>Yes</option>
             </select>
 
+            <label>Theme style</label>
+            <select id="theme_name">
+              {% for t in themes %}
+                <option value="{{ t.id }}" {% if cfg.theme_name == t.id %}selected{% endif %}>{{ t.name }}</option>
+              {% endfor %}
+            </select>
+            <div class="small">
+              {% for t in themes %}
+                <div><span class="mono">{{ t.name }}</span> - {{ t.desc }}</div>
+              {% endfor %}
+            </div>
+
             <label>Idle background image</label>
             <select id="idle_background_filename">
               <option value="">(none - black)</option>
@@ -186,6 +198,19 @@
                 <option value="{{ o }}" {% if o == cfg.overlay_filename %}selected{% endif %}>{{ o }}</option>
               {% endfor %}
             </select>
+
+            <label>Frame picker</label>
+            <div class="frame-picker" id="framePicker">
+              <button type="button" class="frame-card {% if not cfg.overlay_filename %}on{% endif %}" data-frame="">
+                <div class="frame-none">No frame</div>
+              </button>
+              {% for o in overlays %}
+                <button type="button" class="frame-card {% if o == cfg.overlay_filename %}on{% endif %}" data-frame="{{ o }}">
+                  <img src="/overlays/{{ o | replace(' ', '%20') }}" alt="{{ o }}" />
+                  <span>{{ o }}</span>
+                </button>
+              {% endfor %}
+            </div>
 
             <label>Upload new overlay (PNG)</label>
             <input id="overlay_upload" type="file" accept="image/png" />
