@@ -40,25 +40,20 @@ apt_install_if_missing() {
 apt_install_if_missing python3 python3
 apt_install_if_missing ffmpeg ffmpeg
 
-# python3 -m venv support
-if ! python3 -m venv --help >/dev/null 2>&1; then
-  apt_install_if_missing python3 python3-venv
-fi
-
 # Ensure pip exists for python3
 if ! python3 -m pip --version >/dev/null 2>&1; then
   apt_install_if_missing pip3 python3-pip
 fi
 
-if [ ! -d ".venv" ]; then
-  python3 -m venv .venv
-fi
-source .venv/bin/activate
-
-if ! python -m pip --version >/dev/null 2>&1; then
-  python -m ensurepip --upgrade
+if ! python3 -m pip --version >/dev/null 2>&1; then
+  python3 -m ensurepip --upgrade
 fi
 
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-python -m app.main
+python3 -m pip install --upgrade pip || true
+
+# System Python install path. Prefer --user first, fallback to --break-system-packages on managed distros.
+if ! python3 -m pip install --user -r requirements.txt; then
+  python3 -m pip install --break-system-packages -r requirements.txt
+fi
+
+python3 -m app.main

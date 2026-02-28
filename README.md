@@ -32,6 +32,7 @@ Then open `http://localhost:8000/` (or run Chromium in kiosk mode pointing to it
 - `karaoke_photobooth/data/config.json`: persisted config
 - `karaoke_photobooth/data/overlays/`: uploaded border PNGs
 - `karaoke_photobooth/data/sessions/`: per-session folders with clips + thumbs + meta
+- Demo border frame included: `karaoke_photobooth/data/overlays/demo_border_overlay.png`
 
 ## Release + updater
 - Version file: `VERSION`

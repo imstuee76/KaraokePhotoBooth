@@ -98,14 +98,13 @@ else
   fi
 fi
 
-# Sync app files only (do not overwrite data/.env/.venv).
+# Sync app files only (do not overwrite data/.env).
 mkdir -p "$APP_DIR"
 if command -v rsync >/dev/null 2>&1; then
   rsync -a \
     --exclude "data/" \
     --exclude ".env" \
     --exclude "update/.env" \
-    --exclude ".venv/" \
     "$SRC_DIR"/ "$APP_DIR"/
 else
   # Non-destructive fallback copy (no delete).
@@ -132,13 +131,22 @@ done
 [ -d "$APP_DIR/scripts" ] && find "$APP_DIR/scripts" -maxdepth 1 -type f -name "*.sh" -exec chmod 750 {} \;
 [ -d "$APP_DIR/update" ] && find "$APP_DIR/update" -maxdepth 1 -type f -name "*.sh" -exec chmod 750 {} \;
 
-# Optional: prepare venv + deps.
+# Optional: install python deps on system python (no venv).
 if command -v python3 >/dev/null 2>&1; then
-  if [ ! -d "$APP_DIR/.venv" ]; then
-    python3 -m venv "$APP_DIR/.venv"
+  if ! python3 -m pip --version >/dev/null 2>&1; then
+    if command -v apt-get >/dev/null 2>&1; then
+      if [ "$(id -u)" -eq 0 ]; then
+        apt-get update && apt-get install -y python3-pip
+      elif command -v sudo >/dev/null 2>&1; then
+        sudo apt-get update && sudo apt-get install -y python3-pip
+      fi
+    fi
   fi
-  source "$APP_DIR/.venv/bin/activate"
-  pip install -r "$APP_DIR/requirements.txt"
+  if python3 -m pip --version >/dev/null 2>&1; then
+    python3 -m pip install --upgrade pip || true
+    python3 -m pip install --user -r "$APP_DIR/requirements.txt" || \
+      python3 -m pip install --break-system-packages -r "$APP_DIR/requirements.txt"
+  fi
 fi
 
 VERSION="unknown"

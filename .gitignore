@@ -6,4 +6,6 @@ __pycache__/
 
 data/config.json
 data/sessions/
-data/overlays/
+data/overlays/*
+!data/overlays/.gitkeep
+!data/overlays/demo_border_overlay.png
