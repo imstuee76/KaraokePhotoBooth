@@ -131,6 +131,108 @@ done
 [ -d "$APP_DIR/scripts" ] && find "$APP_DIR/scripts" -maxdepth 1 -type f -name "*.sh" -exec chmod 750 {} \;
 [ -d "$APP_DIR/update" ] && find "$APP_DIR/update" -maxdepth 1 -type f -name "*.sh" -exec chmod 750 {} \;
 
+# Create launcher scripts + desktop shortcuts.
+APP_USER="${SUDO_USER:-${USER:-$(id -un)}}"
+APP_HOME="$(getent passwd "$APP_USER" | cut -d: -f6 2>/dev/null || true)"
+if [ -z "$APP_HOME" ]; then
+  APP_HOME="$HOME"
+fi
+DESKTOP_DIR="$APP_HOME/Desktop"
+mkdir -p "$APP_DIR/scripts" "$DESKTOP_DIR"
+
+KIOSK_LAUNCH="$APP_DIR/scripts/launch_kiosk.sh"
+WINDOW_LAUNCH="$APP_DIR/scripts/launch_window.sh"
+
+cat > "$KIOSK_LAUNCH" <<EOF
+#!/usr/bin/env bash
+set -euo pipefail
+APP_DIR="$APP_DIR"
+URL="http://localhost:8000/?mode=kiosk"
+cd "\$APP_DIR"
+mkdir -p "\$APP_DIR/data/logs"
+if ! pgrep -f "python3 -m app.main" >/dev/null 2>&1; then
+  nohup ./run.sh > "\$APP_DIR/data/logs/launcher_kiosk_\$(date +%d-%m-%y_%H-%M-%S).log" 2>&1 &
+  sleep 5
+fi
+BROWSER=""
+for b in chromium-browser chromium google-chrome-stable google-chrome; do
+  if command -v "\$b" >/dev/null 2>&1; then
+    BROWSER="\$b"
+    break
+  fi
+done
+if [ -n "\$BROWSER" ]; then
+  "\$BROWSER" --kiosk --noerrdialogs --disable-infobars --incognito "\$URL" >/dev/null 2>&1 &
+elif command -v xdg-open >/dev/null 2>&1; then
+  xdg-open "\$URL" >/dev/null 2>&1 &
+fi
+EOF
+
+cat > "$WINDOW_LAUNCH" <<EOF
+#!/usr/bin/env bash
+set -euo pipefail
+APP_DIR="$APP_DIR"
+URL="http://localhost:8000/?mode=window"
+cd "\$APP_DIR"
+mkdir -p "\$APP_DIR/data/logs"
+if ! pgrep -f "python3 -m app.main" >/dev/null 2>&1; then
+  nohup ./run.sh > "\$APP_DIR/data/logs/launcher_window_\$(date +%d-%m-%y_%H-%M-%S).log" 2>&1 &
+  sleep 5
+fi
+BROWSER=""
+for b in chromium-browser chromium google-chrome-stable google-chrome; do
+  if command -v "\$b" >/dev/null 2>&1; then
+    BROWSER="\$b"
+    break
+  fi
+done
+if [ -n "\$BROWSER" ]; then
+  "\$BROWSER" --new-window "\$URL" >/dev/null 2>&1 &
+elif command -v xdg-open >/dev/null 2>&1; then
+  xdg-open "\$URL" >/dev/null 2>&1 &
+fi
+EOF
+
+chmod 750 "$KIOSK_LAUNCH" "$WINDOW_LAUNCH"
+
+KIOSK_DESKTOP="$DESKTOP_DIR/Karaoke Photo Booth Kiosk.desktop"
+WINDOW_DESKTOP="$DESKTOP_DIR/Karaoke Photo Booth Window.desktop"
+
+cat > "$KIOSK_DESKTOP" <<EOF
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Karaoke Photo Booth Kiosk
+Comment=Start booth in kiosk mode
+Exec=$KIOSK_LAUNCH
+Path=$APP_DIR
+Terminal=false
+Categories=AudioVideo;
+StartupNotify=false
+EOF
+
+cat > "$WINDOW_DESKTOP" <<EOF
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Karaoke Photo Booth Window
+Comment=Start booth in window mode (admin test)
+Exec=$WINDOW_LAUNCH
+Path=$APP_DIR
+Terminal=false
+Categories=AudioVideo;
+StartupNotify=false
+EOF
+
+chmod 755 "$KIOSK_DESKTOP" "$WINDOW_DESKTOP"
+if command -v gio >/dev/null 2>&1; then
+  gio set "$KIOSK_DESKTOP" metadata::trusted true 2>/dev/null || true
+  gio set "$WINDOW_DESKTOP" metadata::trusted true 2>/dev/null || true
+fi
+if [ "$(id -u)" -eq 0 ]; then
+  chown "$APP_USER:$APP_USER" "$KIOSK_LAUNCH" "$WINDOW_LAUNCH" "$KIOSK_DESKTOP" "$WINDOW_DESKTOP" 2>/dev/null || true
+fi
+
 # Optional: install python deps on system python (no venv).
 if command -v python3 >/dev/null 2>&1; then
   if ! python3 -m pip --version >/dev/null 2>&1; then

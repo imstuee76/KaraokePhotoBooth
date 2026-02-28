@@ -199,8 +199,10 @@ async def _startup() -> None:
 
 
 @app.get("/", response_class=HTMLResponse)
-async def index() -> HTMLResponse:
+async def index(request: Request) -> HTMLResponse:
     cfg = _cfg()
+    mode = (request.query_params.get("mode", "kiosk") or "kiosk").lower()
+    show_config_button = mode == "window"
     idle_bg_url = ""
     if cfg.idle_background_filename:
         idle_bg_url = f"/backgrounds/{cfg.idle_background_filename}"
@@ -208,6 +210,7 @@ async def index() -> HTMLResponse:
         "index.html",
         idle_text=cfg.idle_text,
         idle_bg_url=idle_bg_url,
+        show_config_button=show_config_button,
         show_main_session_controls=cfg.show_main_session_controls,
     )
 

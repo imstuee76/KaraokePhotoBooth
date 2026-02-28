@@ -43,8 +43,12 @@
             <div class="mono" id="status">Idle</div>
           </div>
           <div class="pill">
-            <button class="btn-secondary" style="padding:10px 14px;font-size:16px" onclick="location.href='/config'">Config</button>
-            {% if show_main_session_controls %}
+            {% if show_config_button %}
+              <button class="btn-secondary" style="padding:10px 14px;font-size:16px" onclick="location.href='/config'">Config</button>
+            {% else %}
+              <div class="mono">Booth Screen</div>
+            {% endif %}
+            {% if show_config_button and show_main_session_controls %}
               <button class="btn-secondary" style="padding:10px 14px;font-size:16px" id="testStartBtn">Start</button>
               <button class="btn-secondary" style="padding:10px 14px;font-size:16px" id="testStopBtn">Stop</button>
             {% endif %}

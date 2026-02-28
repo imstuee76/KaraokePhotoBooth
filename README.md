@@ -28,6 +28,10 @@ cd karaoke_photobooth
 Then open `http://localhost:8000/` (or run Chromium in kiosk mode pointing to it).
 `run.sh` checks required dependencies and installs missing ones on Linux Mint/Debian systems.
 
+Mode URLs:
+- Kiosk mode (config hidden): `http://localhost:8000/?mode=kiosk`
+- Window mode (config shown): `http://localhost:8000/?mode=window`
+
 ## Data folders
 - `karaoke_photobooth/data/config.json`: persisted config
 - `karaoke_photobooth/data/overlays/`: uploaded border PNGs
@@ -43,6 +47,9 @@ Then open `http://localhost:8000/` (or run Chromium in kiosk mode pointing to it
 - Device updater:
   - `update/update_karaoke_photobooth.sh` (pulls repo root by default, preserves `/data`, and sets safe permissions)
   - Logs each update run to `data/logs/update_YYYYMMDD_HHMMSS.log`
+  - Creates desktop shortcuts:
+    - `Karaoke Photo Booth Kiosk.desktop`
+    - `Karaoke Photo Booth Window.desktop`
 - Full workflow: `GIT_UPDATE.md`
 
 ## Notes
