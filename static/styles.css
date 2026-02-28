@@ -33,6 +33,11 @@ body[data-theme="wedding_luxe"]{
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;background:var(--bg);color:var(--fg)}
 body{font-family: ui-rounded, "Comic Sans MS", "Trebuchet MS", system-ui, -apple-system, Segoe UI, sans-serif; overflow:hidden;}
+body.config-page, body.admin-page, body.gallery-page{
+  overflow:auto;
+  height:auto;
+  min-height:100%;
+}
 
 .screen{
   position:fixed; inset:0;
@@ -222,6 +227,27 @@ button:active{transform:scale(.98)}
   background:#000 center center / cover no-repeat;
   opacity:.9;
 }
+.idle-content{
+  position:relative;
+  z-index:2;
+  text-align:center;
+  padding:20px 24px;
+  border-radius:22px;
+  border:1px solid rgba(255,255,255,.18);
+  background: linear-gradient(180deg, rgba(0,0,0,.48), rgba(0,0,0,.28));
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+}
+.idle-chip{
+  display:inline-block;
+  margin-bottom:10px;
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:13px;
+  letter-spacing:1px;
+  border:1px solid rgba(255,255,255,.28);
+  background:rgba(255,255,255,.10);
+}
 .idle .floaty{
   position:relative;
   font-size: clamp(44px, 8vw, 92px);
@@ -231,12 +257,23 @@ button:active{transform:scale(.98)}
   letter-spacing:2px;
   color: var(--fg);
   text-shadow: 0 25px 80px rgba(0,0,0,.95);
-  animation: drift 7s ease-in-out infinite;
+  animation: drift 7s ease-in-out infinite, pulseGlow 2.6s ease-in-out infinite;
+}
+.idle-sub{
+  margin-top:6px;
+  opacity:.9;
+  font-size:16px;
+  letter-spacing:1px;
 }
 @keyframes drift{
   0%{ transform: translate(-12vw, -6vh) rotate(-2deg); }
   50%{ transform: translate(10vw, 7vh) rotate(2deg); }
   100%{ transform: translate(-12vw, -6vh) rotate(-2deg); }
+}
+@keyframes pulseGlow{
+  0%{ text-shadow: 0 10px 40px rgba(255,255,255,.08); }
+  50%{ text-shadow: 0 10px 55px rgba(255,255,255,.34); }
+  100%{ text-shadow: 0 10px 40px rgba(255,255,255,.08); }
 }
 @keyframes drift_slow{
   0%{ transform: translate(-7vw, -3vh) rotate(-1deg); }
@@ -248,9 +285,17 @@ body[data-theme="retro_film"] .idle .floaty{
   letter-spacing: 4px;
   text-transform: none;
 }
+body[data-theme="retro_film"] .idle-content{
+  background: linear-gradient(180deg, rgba(43,23,10,.62), rgba(26,14,9,.45));
+  border-color: rgba(242,206,145,.34);
+}
 body[data-theme="wedding_luxe"] .idle .floaty{
   letter-spacing: 6px;
   font-weight: 800;
+}
+body[data-theme="wedding_luxe"] .idle-content{
+  background: linear-gradient(180deg, rgba(24,20,24,.58), rgba(17,14,17,.40));
+  border-color: rgba(246,221,210,.35);
 }
 
 .qr{
@@ -286,7 +331,7 @@ body[data-theme="wedding_luxe"] .idle .floaty{
 
 /* Config / gallery */
 .page{
-  min-height:100%;
+  min-height:100vh;
   overflow:auto;
   padding:24px;
   background:
@@ -322,6 +367,16 @@ input,select{
 }
 .row{display:flex; gap:10px}
 .row > *{flex:1}
+.config-actions{
+  position: sticky;
+  bottom: 10px;
+  z-index: 20;
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(0,0,0,.45);
+  border:1px solid rgba(255,255,255,.14);
+  backdrop-filter: blur(8px);
+}
 .small{opacity:.8;font-size:14px}
 .thumbs{
   display:grid;

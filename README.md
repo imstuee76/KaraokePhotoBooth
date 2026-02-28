@@ -29,6 +29,7 @@ cd karaoke_photobooth
 
 Then open `http://localhost:8000/` (or run Chromium in kiosk mode pointing to it).
 `run.sh` checks required dependencies and installs missing ones on Linux Mint/Debian systems.
+If your distro enforces a managed Python environment, `run.sh` falls back to `--break-system-packages`.
 
 Mode URLs:
 - Kiosk mode (config hidden): `http://localhost:8000/?mode=kiosk`

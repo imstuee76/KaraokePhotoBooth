@@ -20,7 +20,11 @@
 
       <div class="idle" id="idle">
         <div class="idle-bg" id="idleBg" {% if idle_bg_url %}style="background-image:url('{{ idle_bg_url }}')"{% endif %}></div>
-        <div class="floaty" id="idleText">{{ idle_text }}</div>
+        <div class="idle-content">
+          <div class="idle-chip">Karaoke Booth</div>
+          <div class="floaty" id="idleText">{{ idle_text }}</div>
+          <div class="idle-sub">Waiting for admin unlock</div>
+        </div>
       </div>
 
       <div class="qr" id="qrBox">

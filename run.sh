@@ -46,14 +46,31 @@ if ! python3 -m pip --version >/dev/null 2>&1; then
 fi
 
 if ! python3 -m pip --version >/dev/null 2>&1; then
-  python3 -m ensurepip --upgrade
+  echo "python3-pip not available; cannot install Python dependencies."
+  exit 1
 fi
 
 python3 -m pip install --upgrade pip || true
 
-# System Python install path. Prefer --user first, fallback to --break-system-packages on managed distros.
-if ! python3 -m pip install --user -r requirements.txt; then
-  python3 -m pip install --break-system-packages -r requirements.txt
+install_requirements() {
+  if python3 -m pip install --user -r requirements.txt; then
+    return 0
+  fi
+  if python3 -m pip install --break-system-packages -r requirements.txt; then
+    return 0
+  fi
+  if need_cmd sudo; then
+    if sudo python3 -m pip install --break-system-packages -r requirements.txt; then
+      return 0
+    fi
+  fi
+  return 1
+}
+
+if ! install_requirements; then
+  echo "Failed to install dependencies in managed environment."
+  echo "Try manually: sudo python3 -m pip install --break-system-packages -r requirements.txt"
+  exit 1
 fi
 
 python3 -m app.main

@@ -59,10 +59,11 @@ function payloadFromForm() {
 
 async function save() {
   msg("Saving...");
+  const payload = payloadFromForm();
   const r = await fetch("/api/config", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payloadFromForm()),
+    body: JSON.stringify(payload),
   });
   if (!r.ok) {
     let d = "save failed";
@@ -70,7 +71,17 @@ async function save() {
     msg(d, true);
     return;
   }
-  msg("Saved. Refresh preview if needed.");
+  // Read-back check for persistence.
+  try {
+    const check = await fetch("/api/config", { cache: "no-store" }).then((x) => x.json());
+    if ((check.theme_name || "") === (payload.theme_name || "")) {
+      msg("Saved to disk.");
+    } else {
+      msg("Saved, but read-back mismatch.", true);
+    }
+  } catch {
+    msg("Saved.");
+  }
 }
 
 async function liveStart() {
@@ -183,10 +194,11 @@ function bindFramePicker() {
     btn.addEventListener("click", async () => {
       const name = btn.getAttribute("data-frame") || "";
       el("overlay_filename").value = name;
-      if (name) el("overlay_enabled").value = "true";
+      el("overlay_enabled").value = name ? "true" : "false";
       box.querySelectorAll(".frame-card").forEach((x) => x.classList.remove("on"));
       btn.classList.add("on");
       await livePush();
+      msg(name ? `Frame selected: ${name}` : "Frame cleared");
     });
   });
 }

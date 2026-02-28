@@ -246,8 +246,13 @@ if command -v python3 >/dev/null 2>&1; then
   fi
   if python3 -m pip --version >/dev/null 2>&1; then
     python3 -m pip install --upgrade pip || true
-    python3 -m pip install --user -r "$APP_DIR/requirements.txt" || \
-      python3 -m pip install --break-system-packages -r "$APP_DIR/requirements.txt"
+    if ! python3 -m pip install --user -r "$APP_DIR/requirements.txt"; then
+      if ! python3 -m pip install --break-system-packages -r "$APP_DIR/requirements.txt"; then
+        if command -v sudo >/dev/null 2>&1; then
+          sudo python3 -m pip install --break-system-packages -r "$APP_DIR/requirements.txt" || true
+        fi
+      fi
+    fi
   fi
 fi
 
